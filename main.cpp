@@ -8,46 +8,47 @@
 #include <omp.h>
 #endif
 
+const char EMPTY_CHAIN_ID = ' ';
+const char SEP = '/';
+const char NL = '\n';
 const unsigned int PROGRAM_IDX = 0;
 const unsigned int INPUT_IDX = 1;
 const unsigned int OUTPUT_IDX = 2;
 const unsigned int HEADER_POS = 0;
 const unsigned int HEADER_LEN = 6;
 const unsigned int CHAIN_ID_POS = 21;
-const unsigned int CHAIN_ID_LEN = 1;
+const unsigned int SUCCESS = 0;
+const unsigned int FAILED = 1;
 const std::string ATOM = "ATOM  ";
 const std::string HETATM = "HETATM";
 const std::string  TER = "TER   ";
-const char SEP = '/';
-const unsigned int SUCCESS = 0;
-const unsigned int FAILED = 1;
 
-void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines, std::string foo) {
+void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines) {
     std::string line;
     std::string header;
-    std::string chainId;
-    std::string currChainId;
-    bool egg = false;
+    char chainId;
+    char currChainId;
+
     while(getline(iFileReader, line)) {
         header = line.substr(HEADER_POS, HEADER_LEN);
-        currChainId = (header == ATOM || header == HETATM) ? line.substr(CHAIN_ID_POS, CHAIN_ID_LEN) : "";
-        if (header == HETATM && !chainId.empty() && chainId != currChainId)
-        {egg = true; continue;}
+        currChainId = (header == ATOM || header == HETATM) ? line[CHAIN_ID_POS] : EMPTY_CHAIN_ID;
 
-        if (header == ATOM && chainId.empty())
+        if (header == HETATM && chainId != EMPTY_CHAIN_ID && chainId != currChainId) {
+//            line[CHAIN_ID_POS] = chainId;
+            continue;
+        }
+
+        if (header == ATOM && chainId == EMPTY_CHAIN_ID)
             chainId =  currChainId;
 
         if (header == TER)
-            chainId.clear();
+            chainId = EMPTY_CHAIN_ID;
 
-        filteredLines.append(line + '\n');
+        filteredLines.append(line + NL);
     }
-    if (egg)
-        std::cout << foo << std::endl;
+
     line.clear();
     header.clear();
-    chainId.clear();
-    currChainId.clear();
 }
 
 int main(int argc, char* argv[]) {
@@ -76,7 +77,7 @@ int main(int argc, char* argv[]) {
             oFileWriter = std::ofstream (oFileName);
 
             if (iFileReader.is_open()) {
-                getFilteredLines(iFileReader, filteredLine, iFileName);
+                getFilteredLines(iFileReader, filteredLine);
                 iFileReader.close();
             } else {
                 std::cout << "Unable to open file" << "\t" << iFileName << std::endl;
