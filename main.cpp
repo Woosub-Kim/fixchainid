@@ -11,7 +11,6 @@
 const char EMPTY_CHAIN_ID = ' ';
 const char SEP = '/';
 const char NL = '\n';
-const unsigned int PROGRAM_IDX = 0;
 const unsigned int INPUT_IDX = 1;
 const unsigned int OUTPUT_IDX = 2;
 const unsigned int HEADER_POS = 0;
@@ -19,9 +18,9 @@ const unsigned int HEADER_LEN = 6;
 const unsigned int CHAIN_ID_POS = 21;
 const unsigned int SUCCESS = 0;
 const unsigned int FAILED = 1;
-const std::string ATOM = "ATOM  ";
-const std::string HETATM = "HETATM";
-const std::string  TER = "TER   ";
+const std::string ATM = "ATOM  ";
+const std::string HTM = "HETATM";
+const std::string TER = "TER   ";
 
 void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines) {
     std::string line;
@@ -31,14 +30,12 @@ void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines) 
 
     while(getline(iFileReader, line)) {
         header = line.substr(HEADER_POS, HEADER_LEN);
-        currChainId = (header == ATOM || header == HETATM) ? line[CHAIN_ID_POS] : EMPTY_CHAIN_ID;
+        currChainId = (header == ATM || header == HTM) ? line[CHAIN_ID_POS] : EMPTY_CHAIN_ID;
 
-        if (header == HETATM && chainId != EMPTY_CHAIN_ID && chainId != currChainId) {
-//            line[CHAIN_ID_POS] = chainId;
-            continue;
-        }
+        if (header == HTM && chainId != EMPTY_CHAIN_ID && chainId != currChainId)
+            line[CHAIN_ID_POS] = chainId;
 
-        if (header == ATOM && chainId == EMPTY_CHAIN_ID)
+        if (header == ATM && chainId == EMPTY_CHAIN_ID)
             chainId =  currChainId;
 
         if (header == TER)
@@ -52,7 +49,6 @@ void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines) 
 }
 
 int main(int argc, char* argv[]) {
-    std::string cPath = argv[PROGRAM_IDX];
     std::string iPath = argv[INPUT_IDX];
     std::string oPath = argv[OUTPUT_IDX];
     std::filesystem::create_directories(oPath);
@@ -85,14 +81,19 @@ int main(int argc, char* argv[]) {
             }
 
             if (oFileWriter.is_open()) {
-                oFileWriter << filteredLine + '\n';
+                oFileWriter << filteredLine;
                 oFileWriter.close();
             } else {
                 std::cout << "error" << "\t" << oFileName << std::endl;
                 return FAILED;
             }
+            iFileName.clear();
+            oFileName.clear();
             filteredLine.clear();
         }
     }
+    iPath.clear();
+    oPath.clear();
+    iFiles.clear();
     return SUCCESS;
 }
