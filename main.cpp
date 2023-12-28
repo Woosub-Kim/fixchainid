@@ -27,8 +27,8 @@ const std::string TER = "TER   ";
 void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines) {
     std::string line;
     std::string header;
-    char chainId;
-    char currChainId;
+    char chainId = EMPTY_CHAIN_ID;
+    char currChainId = EMPTY_CHAIN_ID;
 
     while(getline(iFileReader, line)) {
         header = line.substr(HEADER_POS, HEADER_LEN);
@@ -36,6 +36,7 @@ void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines) 
 
         if (header == HTM && chainId != EMPTY_CHAIN_ID && chainId != currChainId)
             line[CHAIN_ID_POS] = chainId;
+
 
         if (header == ATM && chainId == EMPTY_CHAIN_ID)
             chainId =  currChainId;
