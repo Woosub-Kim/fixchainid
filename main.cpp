@@ -19,6 +19,7 @@ const unsigned int CHAIN_ID_POS = 21;
 const unsigned int SUCCESS = 0;
 const unsigned int FAILED = 1;
 const unsigned int BAR_WIDTH = 20;
+const double DONE_INIT = 0.0;
 const std::string ATM = "ATOM  ";
 const std::string HTM = "HETATM";
 const std::string TER = "TER   ";
@@ -49,13 +50,16 @@ void getFilteredLines(std::ifstream & iFileReader, std::string & filteredLines) 
     header.clear();
 }
 
-void setProgressBar(double progress) {
+void updateProgressBar(double progress) {
     std::cout << "[";
     auto pos = (int) (BAR_WIDTH * progress);
     for (int i = 0; i < BAR_WIDTH; ++i) {
-        if (i < pos) std::cout << "=";
-        else if (i == pos) std::cout << ">";
-        else std::cout << " ";
+        if (i < pos)
+            std::cout << "=";
+        else if (i == pos)
+            std::cout << ">";
+        else
+            std::cout << " ";
     }
     std::cout << "] " << int(progress * 100.0) << " %\r";
 }
@@ -68,7 +72,7 @@ int main(int argc, char* argv[]) {
     for (const auto& iFile : std::filesystem::directory_iterator(iPath))  {
         iFiles.emplace_back(iFile.path());
     }
-    double done = 0.0;
+    double done = DONE_INIT;
 #pragma omp parallel
     {
         std::string iFileName;
@@ -99,7 +103,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "error" << "\t" << oFileName << std::endl;
                 return FAILED;
             }
-            setProgressBar(++done / iFiles.size());
+//            updateProgressBar(++done / (double) iFiles.size());
             iFileName.clear();
             oFileName.clear();
             filteredLine.clear();
@@ -108,5 +112,6 @@ int main(int argc, char* argv[]) {
     iPath.clear();
     oPath.clear();
     iFiles.clear();
+    std::cout << "process succeed"  << std::endl;
     return SUCCESS;
 }
